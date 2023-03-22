@@ -1,0 +1,12 @@
+.env
+.eslintrc
+.gitattributes
+.github
+.prettierrc
+.vscode
+*.tgz
+coverage
+example.js
+node_modules
+specs
+vitest.config.js
