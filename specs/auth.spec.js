@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 test('should obtain token automatically via redirect', async () => {
-  const tokenPromise = auth(YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET, { redirectURI: 'http://localhost:8999' });
+  const tokenPromise = auth(YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET, { redirectURI: 'http://localhost:9999' });
 
   expect(tokenPromise).toBeInstanceOf(Promise);
   expect(https._lastRequest._context.url).toMatch(CLCK_API_URL);
@@ -30,10 +30,10 @@ test('should obtain token automatically via redirect', async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   expect(process.stdout.write).toHaveBeenCalledWith(expect.stringMatching('Visit https://clck.ru/3498ab'));
-  expect(process.stdout.write).toHaveBeenCalledWith(expect.stringContaining('Server listening on port 8999'));
+  expect(process.stdout.write).toHaveBeenCalledWith(expect.stringContaining('Server listening on port 9999'));
 
   await new Promise((resolve, reject) => {
-    const req = http.request('http://localhost:8999/?code=123456', (response) =>
+    const req = http.request('http://localhost:9999/?code=123456', (response) =>
       response.statusCode === 200 ? resolve() : reject(response.statusCode)
     );
     req.end();
