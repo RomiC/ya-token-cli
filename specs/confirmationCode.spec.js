@@ -39,14 +39,14 @@ describe('readConfirmationCodeAutomatically', () => {
   beforeEach(() => vi.useFakeTimers());
 
   test('should create server and return promise', () => {
-    expect(readConfirmationCodeAutomatically('http://localhost:8899')).toBeInstanceOf(Promise);
+    expect(readConfirmationCodeAutomatically('http://localhost:8889')).toBeInstanceOf(Promise);
     expect(http.createServer).toHaveBeenCalled();
   });
 
   test('should read test automatically using http server', async () => {
-    const readConfirmationCodePromise = readConfirmationCodeAutomatically('http://localhost:8889');
+    const readConfirmationCodePromise = readConfirmationCodeAutomatically('http://localhost:8899');
 
-    const serverResponse = await _requestToServer('http://localhost:8889', 827364);
+    const serverResponse = await _requestToServer('http://localhost:8899', 827364);
 
     await expect(readConfirmationCodePromise).resolves.toBe('827364');
     expect(serverResponse.statusCode).toBe(200);
@@ -56,9 +56,9 @@ describe('readConfirmationCodeAutomatically', () => {
   });
 
   test('should reject promise if input request has no code parameter', async () => {
-    const readConfirmationCodePromise = readConfirmationCodeAutomatically('http://localhost:8889');
+    const readConfirmationCodePromise = readConfirmationCodeAutomatically('http://localhost:8999');
 
-    _requestToServer('http://localhost:8889');
+    _requestToServer('http://localhost:8999');
 
     await expect(readConfirmationCodePromise).rejects.toThrow("Confirmation code wasn't returned!");
   });
