@@ -6,14 +6,14 @@ import https from 'node:https';
 import readline from 'node:readline';
 import { beforeEach, expect, test, vi } from 'vitest';
 
-import { CLCK_API_URL, YANDEX_OAUTH_TOKEN_URL } from '../lib/constants.js';
+import { CLCK_API_URL, YANDEX_OAUTH_TOKEN_URL } from '../../lib/constants.js';
 
-import { auth } from '../index.js';
+import { auth } from '../../index.js';
 
 const { YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET } = process.env;
 
-vi.mock('https', async () => await import('../specs/__mocks__/https.mock.js'));
-vi.mock('readline', async () => await import('../specs/__mocks__/readline.mock.js'));
+vi.mock('https', async () => await import('../__mocks__/https.mock.js'));
+vi.mock('readline', async () => await import('../__mocks__/readline.mock.js'));
 
 beforeEach(() => {
   vi.spyOn(process.stdout, 'write');

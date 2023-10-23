@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { camelToSnake, camelToSnakeObject } from '../lib/camelToSnake.js';
+import { camelToSnake, camelToSnakeObject } from '../../lib/camelToSnake.js';
 
 describe('camelToSnake', () => {
   test('converting string from camelCase to snake_case', () => {

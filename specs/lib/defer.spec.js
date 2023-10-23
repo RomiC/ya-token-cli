@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 
-import Defer from '../lib/defer.js';
+import Defer from '../../lib/defer.js';
 
 test('should be a class', () => {
   expect(new Defer()).toBeInstanceOf(Defer);

@@ -1,9 +1,9 @@
 import https from 'node:https';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 
-import { request } from '../lib/request.js';
+import { request } from '../../lib/request.js';
 
-vi.mock('https', async () => await import('./__mocks__/https.mock.js'));
+vi.mock('https', async () => await import('../__mocks__/https.mock.js'));
 
 beforeEach(() => vi.spyOn(https, 'request'));
 

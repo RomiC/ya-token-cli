@@ -1,13 +1,13 @@
 import https from 'https';
 import { beforeEach, expect, test, vi } from 'vitest';
 
-import { exchange } from '../lib/token.js';
-import { YANDEX_OAUTH_TOKEN_URL } from '../lib/constants.js';
+import { exchange } from '../../lib/token.js';
+import { YANDEX_OAUTH_TOKEN_URL } from '../../lib/constants.js';
 
 const CLIENT_ID = '19283j1uh9iasd0120-12klj3h1';
 const CLIENT_SECRET = '19283j1uh9iasd0120-12931kj';
 
-vi.mock('https', async () => await import('./__mocks__/https.mock.js'));
+vi.mock('https', async () => await import('../__mocks__/https.mock.js'));
 
 beforeEach(() => vi.spyOn(https, 'request'));
 
