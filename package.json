@@ -1,9 +1,10 @@
 {
   "name": "ya-token-cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Library to obtain OAuth-token to get access to Yandex services for server application",
   "type": "module",
   "main": "index.js",
+  "bin": "./ya-token-cli.js",
   "scripts": {
     "lint": "eslint --max-warnings 0",
     "lint:fix": "npm run lint -- --fix",
