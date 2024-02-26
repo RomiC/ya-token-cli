@@ -22,6 +22,8 @@ Now your app is ready to authorize.
 
 ## Authorization flow
 
+### Code
+
 To authorize your app, add the following code to it:
 
 ```js
@@ -57,6 +59,21 @@ This server will handle the redirect, which happens after the user has been succ
   "token_type": "bearer" // Token type
 }
 ```
+
+### Console
+
+```sh
+npx ya-token-cli
+```
+
+#### Parameters
+
+The following parameters could be specified as environment variables:
+
+- `YANDEX_CLIENT_ID` - Application Client ID. You may find it on the application details page.
+- `YANDEX_CLIENT_SECRET` - Necessary to exchange the confirmation token to OAuth-token.
+- `REDIRECT_URI` - Redirect URI used for authorization. Better be the local one.
+  The web-server will run on
 
 ## API
 

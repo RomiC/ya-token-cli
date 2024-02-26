@@ -4,7 +4,7 @@
   "description": "Library to obtain OAuth-token to get access to Yandex services for server application",
   "type": "module",
   "main": "index.js",
-  "bin": "./ya-token-cli.js",
+  "bin": "./bin/ya-token-cli.js",
   "scripts": {
     "lint": "eslint --max-warnings 0",
     "lint:fix": "npm run lint -- --fix",
@@ -44,7 +44,7 @@
     "husky": "^8.0.3",
     "lint-staged": "^14.0.1",
     "prettier": "^2.8.8",
-    "vitest": "^0.34.3"
+    "vitest": "0.34.6"
   },
   "lint-staged": {
     "+(lib|specs)/*.js": "npm run lint:fix"

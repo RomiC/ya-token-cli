@@ -7,7 +7,7 @@ export default defineConfig({
       all: true,
       enabled: true,
       exclude: ['lib/constants.js'],
-      include: ['index.js', 'lib/*.js'],
+      include: ['index.js', 'lib/*.js', 'bin/*.js'],
       reporter: ['lcov', 'text']
     }
   }
