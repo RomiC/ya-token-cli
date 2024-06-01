@@ -35,7 +35,7 @@
   "devDependencies": {
     "@vitest/coverage-v8": "^1.5.3",
     "dotenv": "^16.4.1",
-    "eslint": "^8.57.0",
+    "eslint": "^9.4.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jsdoc": "^48.2.3",
     "eslint-plugin-markdown": "^3.0.1",
