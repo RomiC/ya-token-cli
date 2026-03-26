@@ -34,7 +34,7 @@
   "homepage": "https://github.com/RomiC/ya-token-cli#readme",
   "devDependencies": {
     "@vitest/coverage-v8": "^2.0.5",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.3.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsdoc": "^48.2.3",
