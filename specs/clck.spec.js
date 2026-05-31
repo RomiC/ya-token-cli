@@ -1,23 +1,26 @@
-import https from 'node:https';
+import { mock } from 'node:test';
 import querystring from 'node:querystring';
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 
 import { CLCK_API_URL } from '../lib/constants.js';
 import { shortenUrl } from '../lib/clck.js';
 
-vi.mock('https', async () => await import('./__mocks__/https.mock.js'));
-
 test('should short url, using clck.ru service', () => {
+  mock.restoreAll();
+  const fetchMock = mock.method(globalThis, 'fetch', async () => ({
+    status: 200,
+    text: async () => 'https://clck.ru/38hj'
+  }));
+
   const urlToShorten = 'https://my-very-long-url.com/?with_a_long=param';
   const shortUrlPromise = shortenUrl(urlToShorten);
 
   expect(shortUrlPromise).toBeInstanceOf(Promise);
-
-  const { _lastRequest } = https;
-
-  expect(_lastRequest._context.url).toBe(`${CLCK_API_URL}?url=${querystring.escape(urlToShorten)}`);
-
-  https._lastRequest._respondWith(200, 'https://clck.ru/38hj');
+  expect(fetchMock.mock.calls[0].arguments[0]).toBe(`${CLCK_API_URL}?url=${querystring.escape(urlToShorten)}`);
+  expect(fetchMock.mock.calls[0].arguments[1]).toEqual({
+    method: 'GET',
+    headers: {}
+  });
 
   expect(shortUrlPromise).resolves.toBe('https://clck.ru/38hj');
 });
