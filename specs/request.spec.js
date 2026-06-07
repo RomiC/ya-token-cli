@@ -1,114 +1,102 @@
-import https from 'node:https';
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect } from 'vitest';
 
+import { useFetchMock, createFetchMock } from './__mocks__/fetch.mock.js';
 import { request } from '../lib/request.js';
 
-vi.mock('https', async () => await import('./__mocks__/https.mock.js'));
-
-beforeEach(() => vi.spyOn(https, 'request'));
+useFetchMock();
 
 describe('Request', () => {
   test('should return promise', () => {
-    const promise = request('https://www.example.com');
+    createFetchMock();
 
-    expect(promise).toBeInstanceOf(Promise);
+    expect(request('https://www.example.com')).toBeInstanceOf(Promise);
   });
 
-  test('should use https.request', () => {
+  test('should call fetch', () => {
+    createFetchMock();
+
     request('https://www.example.com');
 
-    expect(https.request).toHaveBeenCalled();
-    expect(https._lastRequest._isSent).toBe(true);
+    expect(fetch).toHaveBeenCalled();
   });
 
-  test('should pass method, headers and parameters', () => {
+  test('should pass method, headers and URL with parameters', () => {
+    createFetchMock();
+
     request('https://www.example.com', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      params: {
-        foo: 'bar'
-      }
+      headers: { 'Content-Type': 'application/json' },
+      params: { foo: 'bar' }
     });
 
-    expect(https.request).toHaveBeenCalledWith(
-      'https://www.example.com?foo=bar',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      },
-      expect.any(Function)
-    );
-    expect(https._lastRequest._isSent).toBe(true);
+    expect(fetch).toHaveBeenCalledWith('https://www.example.com?foo=bar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: null
+    });
   });
 
-  test('send the data', () => {
+  test('should send data as body', () => {
+    createFetchMock();
+
     const data = JSON.stringify({ foo: 'bar' });
     request('https://www.example.com', { method: 'POST' }, data);
 
-    const { _lastRequest } = https;
-
-    expect(_lastRequest._isSent).toBe(true);
-    expect(_lastRequest._sentData).toBe(data);
+    expect(fetch).toHaveBeenCalledWith('https://www.example.com', {
+      method: 'POST',
+      headers: {},
+      body: data
+    });
   });
 });
 
 describe('Success', () => {
-  test('should handle success JSON-alike responses', () => {
-    const responsePromise = request('https://www.example.com');
+  test('should handle success JSON-alike responses', async () => {
+    createFetchMock({ body: { foo: 'bar' } });
 
-    https._lastRequest._respondWith(200, JSON.stringify({ foo: 'bar' }));
-
-    expect(responsePromise).resolves.toEqual({ foo: 'bar' });
+    await expect(request('https://www.example.com')).resolves.toEqual({ foo: 'bar' });
   });
 
-  test('should handle success non-JSON responses', () => {
-    const responsePromise = request('https://www.example.com', { asJson: false });
+  test('should handle success non-JSON responses', async () => {
+    createFetchMock({ body: 'Hello, world!' });
 
-    https._lastRequest._respondWith(200, 'Hello, world!');
-
-    expect(responsePromise).resolves.toBe('Hello, world!');
+    await expect(request('https://www.example.com', { asJson: false })).resolves.toBe('Hello, world!');
   });
 });
 
 describe('Error', () => {
-  test('should handle errors occur during requests', () => {
-    const responsePromise = request('https://www.example.com');
-
+  test('should handle errors during fetch', async () => {
     const error = new Error('Failed to send request!');
+    fetch.mockRejectedValue(error);
 
-    https._lastRequest._triggerError(error);
-
-    expect(responsePromise).rejects.toBe(error);
+    await expect(request('https://www.example.com')).rejects.toBe(error);
   });
 
-  test('should handle error responses', () => {
-    const responsePromise = request('https://www.example.com');
+  test('should handle error responses', async () => {
+    createFetchMock({
+      status: 400,
+      body: { error: 'Bad Request', error_description: 'Wrong list of parameters!' }
+    });
 
-    https._lastRequest._respondWith(
-      400,
-      JSON.stringify({ error: 'Bad Request', error_description: 'Wrong list of parameters!' })
-    );
-
-    expect(responsePromise).rejects.toThrowError('Wrong list of parameters!');
+    await expect(request('https://www.example.com')).rejects.toThrowError('Wrong list of parameters!');
   });
 
-  test('should reject promise if response cannot be parsed as JSON', () => {
-    const responsePromise = request('https://www.example.com');
+  test('should reject promise if response cannot be parsed as JSON', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('Unexpected token H in JSON at position 0');
+      },
+      text: async () => 'Hello, World!'
+    });
 
-    https._lastRequest._respondWith(200, 'Hello, World!');
-
-    expect(responsePromise).rejects.toThrowError(/Unexpected token/);
+    await expect(request('https://www.example.com')).rejects.toThrowError(/Unexpected token/);
   });
 
-  test('should handle error responses w/o description', () => {
-    const responsePromise = request('https://www.example.com');
+  test('should handle error responses w/o description', async () => {
+    createFetchMock({ status: 500, body: { error: 'Internal Server Error' } });
 
-    https._lastRequest._respondWith(500, JSON.stringify({ error: 'Bad Request' }));
-
-    expect(responsePromise).rejects.toThrowError('Unknown error');
+    await expect(request('https://www.example.com')).rejects.toThrowError('Unknown error');
   });
 });

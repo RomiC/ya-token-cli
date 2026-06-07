@@ -2,18 +2,18 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import http from 'node:http';
-import https from 'node:https';
 import readline from 'node:readline';
 import { beforeEach, expect, test, vi } from 'vitest';
 
+import { useFetchMock, createFetchMock } from './__mocks__/fetch.mock.js';
 import { CLCK_API_URL, YANDEX_OAUTH_TOKEN_URL } from '../lib/constants.js';
-
 import { auth } from '../index.js';
 
 const { YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET } = process.env;
 
-vi.mock('https', async () => await import('../specs/__mocks__/https.mock.js'));
 vi.mock('readline', async () => await import('../specs/__mocks__/readline.mock.js'));
+
+useFetchMock();
 
 beforeEach(() => {
   vi.spyOn(process.stdout, 'write');
@@ -21,17 +21,28 @@ beforeEach(() => {
 });
 
 test('should obtain token automatically via redirect', async () => {
+  const tokenData = {
+    access_token: 'api-token-created-and-used-for-test-purposes-only',
+    expires_in: 31500508,
+    refresh_token: 'api-token-created-and-used-for-test-purposes-only',
+    token_type: 'bearer'
+  };
+
+  createFetchMock({ body: 'https://clck.ru/3498ab' }); // clck.ru shortener
+  createFetchMock({ body: tokenData }); // Yandex OAuth token exchange
+
   const tokenPromise = auth(YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET, { redirectURI: 'http://localhost:9999' });
 
   expect(tokenPromise).toBeInstanceOf(Promise);
-  expect(https._lastRequest._context.url).toMatch(CLCK_API_URL);
+  expect(fetch).toHaveBeenCalledWith(expect.stringMatching(CLCK_API_URL), expect.any(Object));
 
-  https._lastRequest._respondWith(200, 'https://clck.ru/3498ab');
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Wait for the clck.ru response to process and the redirect server to start
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   expect(process.stdout.write).toHaveBeenCalledWith(expect.stringMatching('Visit https://clck.ru/3498ab'));
   expect(process.stdout.write).toHaveBeenCalledWith(expect.stringContaining('Server listening on port 9999'));
 
+  // Simulate Yandex OAuth redirect with the confirmation code
   await new Promise((resolve, reject) => {
     const req = http.request('http://localhost:9999/?code=123456', (response) =>
       response.statusCode === 200 ? resolve() : reject(response.statusCode)
@@ -39,66 +50,52 @@ test('should obtain token automatically via redirect', async () => {
     req.end();
   });
 
-  expect(https._lastRequest._context.url).toBe(YANDEX_OAUTH_TOKEN_URL);
-  expect(https._lastRequest._sentData).toBe('grant_type=authorization_code&code=123456');
+  // Wait for the full token exchange to complete, then assert both fetch calls
+  await expect(tokenPromise).resolves.toEqual(tokenData);
 
-  https._lastRequest._respondWith(
-    200,
-    JSON.stringify({
-      access_token: 'y0_AgAEA7qgzyLRAAaWDgAAAADgI3BPgdP-9iReTuKIx7XZ7K1E9L8Ghlg',
-      expires_in: 31500508,
-      refresh_token:
-        '1:UeN5U8DLk19sj0zP:E644ZJdv6QNr9oE7K1eV0gSb-y82LpiWbSHljIQk_OYaYKzMD l9MOLk5WZGNUQqtrAYwBFB4yELBEw:AARCIbr3VJGTCGiVd3Au8A',
-      token_type: 'bearer'
+  expect(fetch).toHaveBeenNthCalledWith(
+    2,
+    YANDEX_OAUTH_TOKEN_URL,
+    expect.objectContaining({
+      body: new URLSearchParams({ grant_type: 'authorization_code', code: '123456' })
     })
   );
-
-  await expect(tokenPromise).resolves.toEqual({
-    access_token: 'y0_AgAEA7qgzyLRAAaWDgAAAADgI3BPgdP-9iReTuKIx7XZ7K1E9L8Ghlg',
-    expires_in: 31500508,
-    refresh_token:
-      '1:UeN5U8DLk19sj0zP:E644ZJdv6QNr9oE7K1eV0gSb-y82LpiWbSHljIQk_OYaYKzMD l9MOLk5WZGNUQqtrAYwBFB4yELBEw:AARCIbr3VJGTCGiVd3Au8A',
-    token_type: 'bearer'
-  });
 });
 
 test('should obtain token requesting confirmation code from the user', async () => {
+  const tokenData = {
+    access_token: 'api-token-created-and-used-for-test-purposes-only',
+    expires_in: 31500508,
+    refresh_token: 'api-token-created-and-used-for-test-purposes-only',
+    token_type: 'bearer'
+  };
+
+  createFetchMock({ body: 'https://clck.ru/3498ff' }); // clck.ru shortener
+  createFetchMock({ body: tokenData }); // Yandex OAuth token exchange
+
   const tokenPromise = auth(YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET, {}, true, false);
 
   expect(tokenPromise).toBeInstanceOf(Promise);
-  expect(https._lastRequest._context.url).toMatch(CLCK_API_URL);
+  expect(fetch).toHaveBeenCalledWith(expect.stringMatching(CLCK_API_URL), expect.any(Object));
 
-  https._lastRequest._respondWith(200, 'https://clck.ru/3498ff');
+  // Wait for the clck.ru response to process and the readline question to appear
   await new Promise(process.nextTick);
 
   expect(process.stdout.write).toHaveBeenCalledWith(expect.stringMatching('Visit https://clck.ru/3498ff'));
 
   const readlineQuestion = readline._lastInterface._lastQuestion;
-
   expect(readlineQuestion._title).toBe('Enter confirmation code: ');
 
   readlineQuestion._answer('654321');
-  await new Promise(process.nextTick);
 
-  expect(https._lastRequest._context.url).toBe(YANDEX_OAUTH_TOKEN_URL);
-  expect(https._lastRequest._sentData).toBe('grant_type=authorization_code&code=654321');
+  // Wait for the full token exchange to complete, then assert both fetch calls
+  await expect(tokenPromise).resolves.toEqual(tokenData);
 
-  https._lastRequest._respondWith(
-    200,
-    JSON.stringify({
-      access_token: 'y0_AgAEA7qgzyLRAAa000000000I3BPgdP-9iReTuKIx7XZ7K1E9L8Ghlg',
-      expires_in: 31500508,
-      refresh_token:
-        '1:UeN5U8DLk19sj0zP:E644ZJdv6QNr9oE7K1eV0gSb-y82LpiWbSHljIQk_OYaYKzMD l9MOLk5WZGNUQqtrAYwBFB4yELBEw:AARCIbr3VJGTCGiVd3Au8A',
-      token_type: 'bearer'
+  expect(fetch).toHaveBeenNthCalledWith(
+    2,
+    YANDEX_OAUTH_TOKEN_URL,
+    expect.objectContaining({
+      body: new URLSearchParams({ grant_type: 'authorization_code', code: '654321' })
     })
   );
-
-  await expect(tokenPromise).resolves.toEqual({
-    access_token: 'y0_AgAEA7qgzyLRAAa000000000I3BPgdP-9iReTuKIx7XZ7K1E9L8Ghlg',
-    expires_in: 31500508,
-    refresh_token:
-      '1:UeN5U8DLk19sj0zP:E644ZJdv6QNr9oE7K1eV0gSb-y82LpiWbSHljIQk_OYaYKzMD l9MOLk5WZGNUQqtrAYwBFB4yELBEw:AARCIbr3VJGTCGiVd3Au8A',
-    token_type: 'bearer'
-  });
 });
