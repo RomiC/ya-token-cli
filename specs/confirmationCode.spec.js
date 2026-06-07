@@ -1,7 +1,9 @@
 import http from 'node:http';
 import readline from 'node:readline/promises';
-import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
+import { beforeEach, afterEach, describe, test, mock } from 'node:test';
+import assert from 'node:assert/strict';
 
+import { useReadlineMock, readlineMock } from './__mocks__/readline.mock.js';
 import { YANDEX_OAUTH_VERIFICATION_URL } from '../lib/constants.js';
 
 import {
@@ -10,37 +12,42 @@ import {
   readConfirmationCode
 } from '../lib/confirmationCode.js';
 
-vi.mock('node:readline/promises', async () => await import('./__mocks__/readline.mock.js'));
-
 const CLIENT_ID = '5adf8be37370000000000d630546c150';
 
 describe('getConfirmationCodeUrl', () => {
   test('should return URL', () => {
-    expect(getConfirmationCodeUrl(CLIENT_ID)).toBe(
+    assert.strictEqual(
+      getConfirmationCodeUrl(CLIENT_ID),
       `${YANDEX_OAUTH_VERIFICATION_URL}?client_id=${CLIENT_ID}&response_type=code`
     );
   });
 
   test('should add additional options to the URL', () => {
-    expect(
+    assert.strictEqual(
       getConfirmationCodeUrl(CLIENT_ID, {
         deviceID: 'my-laptop',
         deviceName: 'My Super Duper Laptop',
         forceConfirm: true
-      })
-    ).toBe(
+      }),
       `${YANDEX_OAUTH_VERIFICATION_URL}?client_id=${CLIENT_ID}&response_type=code&device_id=my-laptop&device_name=My+Super+Duper+Laptop&force_confirm=true`
     );
   });
 });
 
 describe('readConfirmationCodeAutomatically', () => {
-  beforeAll(() => vi.spyOn(http, 'createServer'));
-  beforeEach(() => vi.useFakeTimers());
+  beforeEach(() => {
+    const originalCreateServer = http.createServer.bind(http);
+    mock.method(http, 'createServer', (...args) => {
+      const server = originalCreateServer(...args);
+      server.unref();
+      return server;
+    });
+  });
+  afterEach(() => mock.restoreAll());
 
   test('should create server and return promise', () => {
-    expect(readConfirmationCodeAutomatically('http://localhost:8889')).toBeInstanceOf(Promise);
-    expect(http.createServer).toHaveBeenCalled();
+    assert.ok(readConfirmationCodeAutomatically('http://localhost:8889') instanceof Promise);
+    assert.ok(http.createServer.mock.callCount() > 0);
   });
 
   test('should read test automatically using http server', async () => {
@@ -48,9 +55,10 @@ describe('readConfirmationCodeAutomatically', () => {
 
     const serverResponse = await _requestToServer('http://localhost:8899', 827364);
 
-    await expect(readConfirmationCodePromise).resolves.toBe('827364');
-    expect(serverResponse.statusCode).toBe(200);
-    expect(serverResponse.body).toBe(
+    assert.strictEqual(await readConfirmationCodePromise, '827364');
+    assert.strictEqual(serverResponse.statusCode, 200);
+    assert.strictEqual(
+      serverResponse.body,
       '<!doctype html><title>Saving the code…</title><body><p>We got the code! The window will be close in 3s</p><script>setTimeout(() => window.close(), 3000)</script></body>'
     );
   });
@@ -60,7 +68,7 @@ describe('readConfirmationCodeAutomatically', () => {
 
     _requestToServer('http://localhost:8999');
 
-    await expect(readConfirmationCodePromise).rejects.toThrow("Confirmation code wasn't returned!");
+    await assert.rejects(readConfirmationCodePromise, { message: "Confirmation code wasn't returned!" });
   });
 
   function _requestToServer(url, code = null) {
@@ -76,40 +84,41 @@ describe('readConfirmationCodeAutomatically', () => {
 });
 
 describe('readConfirmationCode()', () => {
-  beforeEach(() => readline._resetMock());
+  useReadlineMock();
 
   test('should return promise', () => {
-    expect(readConfirmationCode()).toBeInstanceOf(Promise);
+    assert.ok(readConfirmationCode() instanceof Promise);
   });
 
   test('should create a new readline interface', () => {
-    vi.spyOn(readline, 'createInterface');
-
     readConfirmationCode();
 
-    expect(readline.createInterface).toHaveBeenCalledWith({
-      input: process.stdin,
-      output: process.stdout
-    });
+    assert.strictEqual(readline.createInterface.mock.callCount(), 1);
+    assert.deepStrictEqual(readline.createInterface.mock.calls[0].arguments, [
+      {
+        input: process.stdin,
+        output: process.stdout
+      }
+    ]);
   });
 
   test('should show the request', () => {
     readConfirmationCode();
 
-    expect(readline._lastInterface._lastQuestion._title).toBe('Enter confirmation code: ');
+    assert.strictEqual(readlineMock._lastInterface._lastQuestion._title, 'Enter confirmation code: ');
   });
 
   test('should show the request with custom title', () => {
     readConfirmationCode('Enter your super secret code: ');
 
-    expect(readline._lastInterface._lastQuestion._title).toBe('Enter your super secret code: ');
+    assert.strictEqual(readlineMock._lastInterface._lastQuestion._title, 'Enter your super secret code: ');
   });
 
   test('should read confirmation code from console', async () => {
     const confirmationCodePromise = readConfirmationCode();
 
-    readline._lastInterface._lastQuestion._answer('098721');
+    readlineMock._lastInterface._lastQuestion._answer('098721');
 
-    await expect(confirmationCodePromise).resolves.toBe('098721');
+    assert.strictEqual(await confirmationCodePromise, '098721');
   });
 });

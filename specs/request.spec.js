@@ -1,4 +1,5 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test } from 'node:test';
+import assert from 'node:assert/strict';
 
 import { useFetchMock, createFetchMock } from './__mocks__/fetch.mock.js';
 import { request } from '../lib/request.js';
@@ -9,7 +10,7 @@ describe('Request', () => {
   test('should return promise', () => {
     createFetchMock();
 
-    expect(request('https://www.example.com')).toBeInstanceOf(Promise);
+    assert.ok(request('https://www.example.com') instanceof Promise);
   });
 
   test('should call fetch', () => {
@@ -17,7 +18,7 @@ describe('Request', () => {
 
     request('https://www.example.com');
 
-    expect(fetch).toHaveBeenCalled();
+    assert.ok(fetch.mock.callCount() > 0);
   });
 
   test('should pass method, headers and URL with parameters', () => {
@@ -29,11 +30,14 @@ describe('Request', () => {
       params: { foo: 'bar' }
     });
 
-    expect(fetch).toHaveBeenCalledWith('https://www.example.com?foo=bar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: null
-    });
+    assert.deepStrictEqual(fetch.mock.calls[0].arguments, [
+      'https://www.example.com?foo=bar',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: null
+      }
+    ]);
   });
 
   test('should send data as body', () => {
@@ -42,11 +46,14 @@ describe('Request', () => {
     const data = JSON.stringify({ foo: 'bar' });
     request('https://www.example.com', { method: 'POST' }, data);
 
-    expect(fetch).toHaveBeenCalledWith('https://www.example.com', {
-      method: 'POST',
-      headers: {},
-      body: data
-    });
+    assert.deepStrictEqual(fetch.mock.calls[0].arguments, [
+      'https://www.example.com',
+      {
+        method: 'POST',
+        headers: {},
+        body: data
+      }
+    ]);
   });
 });
 
@@ -54,22 +61,25 @@ describe('Success', () => {
   test('should handle success JSON-alike responses', async () => {
     createFetchMock({ body: { foo: 'bar' } });
 
-    await expect(request('https://www.example.com')).resolves.toEqual({ foo: 'bar' });
+    assert.deepStrictEqual(await request('https://www.example.com'), { foo: 'bar' });
   });
 
   test('should handle success non-JSON responses', async () => {
     createFetchMock({ body: 'Hello, world!' });
 
-    await expect(request('https://www.example.com', { asJson: false })).resolves.toBe('Hello, world!');
+    assert.strictEqual(await request('https://www.example.com', { asJson: false }), 'Hello, world!');
   });
 });
 
 describe('Error', () => {
   test('should handle errors during fetch', async () => {
     const error = new Error('Failed to send request!');
-    fetch.mockRejectedValue(error);
+    fetch._queue.push(async () => {
+      throw error;
+    });
 
-    await expect(request('https://www.example.com')).rejects.toBe(error);
+    const rejectedError = await request('https://www.example.com').catch((e) => e);
+    assert.strictEqual(rejectedError, error);
   });
 
   test('should handle error responses', async () => {
@@ -78,25 +88,25 @@ describe('Error', () => {
       body: { error: 'Bad Request', error_description: 'Wrong list of parameters!' }
     });
 
-    await expect(request('https://www.example.com')).rejects.toThrowError('Wrong list of parameters!');
+    await assert.rejects(request('https://www.example.com'), { message: 'Wrong list of parameters!' });
   });
 
   test('should reject promise if response cannot be parsed as JSON', async () => {
-    fetch.mockResolvedValueOnce({
+    fetch._queue.push(async () => ({
       ok: true,
       status: 200,
       json: async () => {
         throw new SyntaxError('Unexpected token H in JSON at position 0');
       },
       text: async () => 'Hello, World!'
-    });
+    }));
 
-    await expect(request('https://www.example.com')).rejects.toThrowError(/Unexpected token/);
+    await assert.rejects(request('https://www.example.com'), /Unexpected token/);
   });
 
   test('should handle error responses w/o description', async () => {
     createFetchMock({ status: 500, body: { error: 'Internal Server Error' } });
 
-    await expect(request('https://www.example.com')).rejects.toThrowError('Unknown error');
+    await assert.rejects(request('https://www.example.com'), { message: 'Unknown error' });
   });
 });

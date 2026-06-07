@@ -1,4 +1,5 @@
-import { expect, test } from 'vitest';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
 
 import { useFetchMock, createFetchMock } from './__mocks__/fetch.mock.js';
 import { exchange } from '../lib/token.js';
@@ -21,18 +22,25 @@ test('should call the token endpoint and return the token', async () => {
 
   const exchangePromise = exchange(CLIENT_ID, CLIENT_SECRET, '123123');
 
-  expect(exchangePromise).toBeInstanceOf(Promise);
+  assert.ok(exchangePromise instanceof Promise);
 
-  await expect(exchangePromise).resolves.toEqual(tokenData);
+  assert.deepStrictEqual(await exchangePromise, tokenData);
 
-  expect(fetch).toHaveBeenCalledWith(YANDEX_OAUTH_TOKEN_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: new URLSearchParams({ grant_type: 'authorization_code', code: '123123' })
+  const fetchedOptions = fetch.mock.calls[0].arguments[1];
+
+  assert.strictEqual(fetch.mock.calls[0].arguments[0], YANDEX_OAUTH_TOKEN_URL);
+  assert.strictEqual(fetchedOptions.method, 'POST');
+  assert.deepStrictEqual(fetchedOptions.headers, {
+    Authorization: `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')}`,
+    'Content-Type': 'application/x-www-form-urlencoded'
   });
+  assert.deepStrictEqual(
+    [...fetchedOptions.body.entries()],
+    [
+      ['grant_type', 'authorization_code'],
+      ['code', '123123']
+    ]
+  );
 });
 
 test('should reject promise in case of error response', async () => {
@@ -41,5 +49,5 @@ test('should reject promise in case of error response', async () => {
     body: { error: 'invalid_grant', error_description: 'Permission were not granted!' }
   });
 
-  await expect(exchange(CLIENT_ID, CLIENT_SECRET, '123123')).rejects.toThrow('Permission were not granted!');
+  await assert.rejects(exchange(CLIENT_ID, CLIENT_SECRET, '123123'), { message: 'Permission were not granted!' });
 });

@@ -1,24 +1,14 @@
-import { vi } from 'vitest';
+import readline from 'node:readline/promises';
+import { afterEach, beforeEach, mock } from 'node:test';
 
-function createReadlineModuleMock() {
-  return new ReadlineMock();
-}
-
-class ReadlineMock {
-  _interfaces = [];
-
-  createInterface = vi.fn().mockImplementation(({ input, output }) => {
-    this._interfaces.push(new ReadlineInterfaceMock(input, output));
-
-    return this._lastInterface;
-  });
-
-  get _lastInterface() {
-    return this._interfaces[this._interfaces.length - 1];
+class ReadlineQuestionMock {
+  constructor(title, resolve) {
+    this._title = title;
+    this._resolve = resolve;
   }
 
-  _resetMock() {
-    this._interfaces = [];
+  _answer(text) {
+    this._resolve(text);
   }
 }
 
@@ -43,15 +33,33 @@ class ReadlineInterfaceMock {
   }
 }
 
-class ReadlineQuestionMock {
-  constructor(title, resolve) {
-    this._title = title;
-    this._resolve = resolve;
+class ReadlineMock {
+  _interfaces = [];
+
+  createInterface = ({ input, output } = {}) => {
+    this._interfaces.push(new ReadlineInterfaceMock(input, output));
+    return this._lastInterface;
+  };
+
+  get _lastInterface() {
+    return this._interfaces[this._interfaces.length - 1];
   }
 
-  _answer(text) {
-    this._resolve(text);
+  _resetMock() {
+    this._interfaces = [];
   }
 }
 
-export default createReadlineModuleMock();
+export const readlineMock = new ReadlineMock();
+
+/**
+ * Register beforeEach/afterEach hooks that stub and restore readline.createInterface.
+ * Call at the top level of each spec file or describe block that needs readline mocking.
+ */
+export function useReadlineMock() {
+  beforeEach(() => {
+    readlineMock._resetMock();
+    mock.method(readline, 'createInterface', readlineMock.createInterface.bind(readlineMock));
+  });
+  afterEach(() => mock.restoreAll());
+}
