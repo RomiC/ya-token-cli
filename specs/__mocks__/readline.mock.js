@@ -30,9 +30,10 @@ class ReadlineInterfaceMock {
     this._output = output;
   }
 
-  question = (title, successCallback) => {
-    this._questions.push(new ReadlineQuestionMock(title, successCallback));
-    return this._lastQuestion;
+  question = (title) => {
+    const { promise, resolve } = Promise.withResolvers();
+    this._questions.push(new ReadlineQuestionMock(title, resolve));
+    return promise;
   };
 
   close = () => {};
@@ -43,13 +44,13 @@ class ReadlineInterfaceMock {
 }
 
 class ReadlineQuestionMock {
-  constructor(title, callback) {
+  constructor(title, resolve) {
     this._title = title;
-    this._callback = callback;
+    this._resolve = resolve;
   }
 
   _answer(text) {
-    this._callback(text);
+    this._resolve(text);
   }
 }
 

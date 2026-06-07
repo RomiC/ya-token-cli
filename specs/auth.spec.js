@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import http from 'node:http';
-import readline from 'node:readline';
+import readline from 'node:readline/promises';
 import { beforeEach, expect, test, vi } from 'vitest';
 
 import { useFetchMock, createFetchMock } from './__mocks__/fetch.mock.js';
@@ -11,7 +11,7 @@ import { auth } from '../index.js';
 
 const { YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET } = process.env;
 
-vi.mock('readline', async () => await import('../specs/__mocks__/readline.mock.js'));
+vi.mock('node:readline/promises', async () => await import('../specs/__mocks__/readline.mock.js'));
 
 useFetchMock();
 

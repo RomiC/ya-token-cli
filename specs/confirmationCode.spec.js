@@ -1,5 +1,5 @@
 import http from 'node:http';
-import readline from 'node:readline';
+import readline from 'node:readline/promises';
 import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { YANDEX_OAUTH_VERIFICATION_URL } from '../lib/constants.js';
@@ -10,7 +10,7 @@ import {
   readConfirmationCode
 } from '../lib/confirmationCode.js';
 
-vi.mock('readline', async () => await import('./__mocks__/readline.mock.js'));
+vi.mock('node:readline/promises', async () => await import('./__mocks__/readline.mock.js'));
 
 const CLIENT_ID = '5adf8be37370000000000d630546c150';
 
