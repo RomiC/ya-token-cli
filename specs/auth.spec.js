@@ -1,6 +1,3 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import http from 'node:http';
 import { beforeEach, afterEach, test, mock } from 'node:test';
 import assert from 'node:assert/strict';
