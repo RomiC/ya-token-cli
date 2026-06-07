@@ -29,7 +29,7 @@ describe('getConfirmationCodeUrl', () => {
         forceConfirm: true
       })
     ).toBe(
-      `${YANDEX_OAUTH_VERIFICATION_URL}?client_id=${CLIENT_ID}&response_type=code&device_id=my-laptop&device_name=My%20Super%20Duper%20Laptop&force_confirm=true`
+      `${YANDEX_OAUTH_VERIFICATION_URL}?client_id=${CLIENT_ID}&response_type=code&device_id=my-laptop&device_name=My+Super+Duper+Laptop&force_confirm=true`
     );
   });
 });
