@@ -1,4 +1,5 @@
-import { expect, test } from 'vitest';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
 
 import { useFetchMock, createFetchMock } from './__mocks__/fetch.mock.js';
 import { CLCK_API_URL } from '../lib/constants.js';
@@ -13,10 +14,9 @@ test('should shorten url, using clck.ru service', async () => {
 
   const result = await shortenUrl(urlToShorten);
 
-  expect(fetch).toHaveBeenCalledWith(`${CLCK_API_URL}?${new URLSearchParams({ url: urlToShorten })}`, {
-    method: 'GET',
-    headers: {},
-    body: null
-  });
-  expect(result).toBe('https://clck.ru/38hj');
+  assert.deepStrictEqual(fetch.mock.calls[0].arguments, [
+    `${CLCK_API_URL}?${new URLSearchParams({ url: urlToShorten })}`,
+    { method: 'GET', headers: {}, body: null }
+  ]);
+  assert.strictEqual(result, 'https://clck.ru/38hj');
 });
