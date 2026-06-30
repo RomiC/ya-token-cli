@@ -16,7 +16,7 @@ jobs:
     name: Test with node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           node-version: ${{ matrix.node }}
       - name: Installing dependencies
@@ -28,7 +28,7 @@ jobs:
         env:
           YANDEX_CLIENT_ID: ${{ secrets.YANDEX_CLIENT_ID }}
           YANDEX_CLIENT_SECRET: ${{ secrets.YANDEX_CLIENT_SECRET }}
-      - uses: coverallsapp/github-action@v2
+      - uses: coverallsapp/github-action@v2.3.6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           flag-name: node v${{ matrix.node }}
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Publishing coverage report
     steps:
-      - uses: coverallsapp/github-action@v2
+      - uses: coverallsapp/github-action@v2.3.6
         with:
           github-token: ${{ secrets.github_token }}
           parallel-finished: true
