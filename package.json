@@ -4,14 +4,17 @@
   "description": "Library to obtain OAuth-token to get access to Yandex services for server application",
   "type": "module",
   "main": "index.js",
+"bin": {
+  "ya-token-cli": "./bin/ya-token-cli.js"
+},
   "scripts": {
     "lint": "eslint --max-warnings 0",
     "lint:fix": "npm run lint -- --fix",
-    "lint:all": "npm run lint -- index.js lib/* specs/*",
+    "lint:all": "npm run lint -- index.js lib/* bin/* specs/*",
     "lint:all:fix": "npm run lint:all -- --fix",
     "prepare": "husky",
-    "test": "c8 --reporter=lcov --reporter=text --exclude='specs/__mocks__' node --test specs/*.spec.js",
-    "test:watch": "node --test --watch specs/*.spec.js"
+    "test": "c8 --reporter=lcov --reporter=text --exclude='specs/__mocks__' node --test specs/*.spec.js bin/*.spec.js",
+    "test:watch": "node --test --watch specs/*.spec.js bin/*.spec.js"
   },
   "engines": {
     "node": ">=22"
@@ -48,12 +51,15 @@
     "yargs": "^18.0.0"
   },
   "lint-staged": {
-    "+(lib|specs)/*.js": "npm run lint:fix"
+    "+(lib|specs|bin)/*.js": "npm run lint:fix"
   },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged -r --no-stash",
       "pre-push": "npm test"
     }
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
   }
 }

@@ -1,6 +1,38 @@
 # ya-token-cli [![NPM version](https://img.shields.io/npm/v/ya-token-cli.svg?style=flat-square)](https://www.npmjs.com/package/ya-token-cli) ![Tests](https://github.com/RomiC/ya-token-cli/workflows/Tests/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/RomiC/ya-token-cli/badge.svg?branch=main)](https://coveralls.io/github/RomiC/ya-token-cli?branch=main)
 
-This library contains some utilities to obtain Yandex OAuth token for CLI utilities. The process of [getting token](https://yandex.ru/dev/id/doc/en/codes/screen-code) consists of two steps:
+This library contains some utilities to obtain Yandex OAuth token — both as a library and as a CLI command.
+
+## CLI usage
+
+Run directly via `npx`:
+
+```sh
+npx ya-token-cli -i <client-id> -s <client-secret> -r http://localhost:8899
+```
+
+Or install globally:
+
+```sh
+npm i -g ya-token-cli
+ya-token-cli -i <client-id> -s <client-secret> -r http://localhost:8899
+```
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `-i, --client-id <id>` | Yandex OAuth client ID |
+| `-s, --client-secret <secret>` | Yandex OAuth client secret |
+| `-r, --redirect-uri <uri>` | Redirect URI for automatic flow |
+| `-m, --manual` | Skip automatic redirect, prompt for code manually |
+| `-u, --short-url` | Shorten the auth URL using clck.ru |
+| `-h, --help` | Show help |
+
+Environment variables (`YANDEX_CLIENT_ID`, `YANDEX_CLIENT_SECRET`, `REDIRECT_URI`) are also supported as fallback.
+
+When run without arguments, the CLI prompts interactively for any missing values.
+
+## Library usage The process of [getting token](https://yandex.ru/dev/id/doc/en/codes/screen-code) consists of two steps:
 
 1. Obtain confirmation code.
 2. Exchange confirmation code to a token.
