@@ -2,10 +2,14 @@
 .eslintrc
 .gitattributes
 .github
+.husky
+.nvmrc
+.pi
 .prettierrc
 .vscode
 *.tgz
 coverage
+eslint.config.js
 example.js
 node_modules
 specs
