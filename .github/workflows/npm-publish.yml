@@ -25,9 +25,6 @@ jobs:
         run: npm run lint:all
       - name: Testing
         run: npm test
-        env:
-          YANDEX_CLIENT_ID: ${{secrets.YANDEX_CLIENT_ID}}
-          YANDEX_CLIENT_SECRET: ${{secrets.YANDEX_CLIENT_SECRET}}
 
   publish-npm:
     needs: test

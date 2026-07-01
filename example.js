@@ -2,8 +2,11 @@
 
 import { auth } from './index.js';
 
-const { YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET } = process.env;
+// Obtain these from https://oauth.yandex.ru
+const CLIENT_ID = '<your-client-id>';
+const CLIENT_SECRET = '<your-client-secret>';
+const REDIRECT_URI = 'http://localhost:8899';
 
-const token = await auth(YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET, { redirectURI: 'http://localhost:8899' });
+const token = await auth(CLIENT_ID, CLIENT_SECRET, { redirectURI: REDIRECT_URI });
 
 console.log(token);

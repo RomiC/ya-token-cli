@@ -7,7 +7,8 @@ import { useReadlineMock, readlineMock } from './__mocks__/readline.mock.js';
 import { CLCK_API_URL, YANDEX_OAUTH_TOKEN_URL } from '../lib/constants.js';
 import { auth } from '../index.js';
 
-const { YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET } = process.env;
+const YANDEX_CLIENT_ID = 'test-client-id';
+const YANDEX_CLIENT_SECRET = 'test-client-secret';
 
 useFetchMock();
 useReadlineMock();
