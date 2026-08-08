@@ -8,10 +8,10 @@
     "ya-token-cli": "bin/ya-token-cli.js"
   },
   "scripts": {
-    "lint": "eslint --max-warnings 0",
-    "lint:fix": "npm run lint -- --fix",
-    "lint:all": "npm run lint -- index.js lib/* bin/* specs/*",
-    "lint:all:fix": "npm run lint:all -- --fix",
+    "lint": "oxlint -c oxlint.config.mjs",
+    "lint:fix": "oxlint -c oxlint.config.mjs --fix",
+    "format": "oxfmt -c oxfmt.config.mjs",
+    "format:check": "oxfmt -c oxfmt.config.mjs --check",
     "prepare": "husky",
     "test": "c8 --reporter=lcov --reporter=text --exclude='specs/__mocks__' node --test specs/*.spec.js bin/*.spec.js",
     "test:watch": "node --test --watch specs/*.spec.js bin/*.spec.js"
@@ -36,22 +36,20 @@
   },
   "homepage": "https://github.com/RomiC/ya-token-cli#readme",
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@eslint/markdown": "^8.0.3",
     "c8": "^11.0.0",
-    "eslint": "^10.6.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.6",
-    "globals": "^17.7.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
-    "prettier": "^3.9.4"
+    "oxfmt": "0.62.0",
+    "oxlint": "1.77.0"
   },
   "overrides": {
     "yargs": "^18.0.0"
   },
   "lint-staged": {
-    "+(lib|specs|bin)/*.js": "npm run lint:fix"
+    "*.{js,mjs}": [
+      "npm run lint:fix",
+      "npm run format"
+    ]
   },
   "husky": {
     "hooks": {
