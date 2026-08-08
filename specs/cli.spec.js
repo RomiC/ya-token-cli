@@ -187,7 +187,11 @@ test('main() all flags automatic mode with redirect URI', async () => {
   await new Promise((resolve, reject) => {
     const req = http.request('http://localhost:18888/?code=654321', (response) => {
       response.resume();
-      response.statusCode === 200 ? resolve() : reject(response.statusCode);
+      if (response.statusCode === 200) {
+        resolve();
+      } else {
+        reject(response.statusCode);
+      }
     });
     req.on('error', reject);
     req.end();
@@ -225,7 +229,11 @@ test('main() without --short-url suppresses clck.ru call (default off)', async (
   await new Promise((resolve, reject) => {
     const req = http.request('http://localhost:18889/?code=111111', (response) => {
       response.resume();
-      response.statusCode === 200 ? resolve() : reject(response.statusCode);
+      if (response.statusCode === 200) {
+        resolve();
+      } else {
+        reject(response.statusCode);
+      }
     });
     req.on('error', reject);
     req.end();
@@ -351,7 +359,11 @@ test('main() prompts for mode and redirect-uri when neither flag is set', async 
   await new Promise((resolve, reject) => {
     const req = http.request('http://localhost:18892/?code=auto-code', (response) => {
       response.resume();
-      response.statusCode === 200 ? resolve() : reject(response.statusCode);
+      if (response.statusCode === 200) {
+        resolve();
+      } else {
+        reject(response.statusCode);
+      }
     });
     req.on('error', reject);
     req.end();

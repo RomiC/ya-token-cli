@@ -19,14 +19,14 @@ ya-token-cli -i <client-id> -s <client-secret> -r http://localhost:8899
 
 ### Options
 
-| Flag | Description |
-|------|-------------|
-| `-i, --client-id <id>` | Yandex OAuth client ID |
-| `-s, --client-secret <secret>` | Yandex OAuth client secret |
-| `-r, --redirect-uri <uri>` | Redirect URI for automatic flow |
-| `-m, --manual` | Skip automatic redirect, prompt for code manually |
-| `-u, --short-url` | Shorten the auth URL using clck.ru |
-| `-h, --help` | Show help |
+| Flag                           | Description                                       |
+| ------------------------------ | ------------------------------------------------- |
+| `-i, --client-id <id>`         | Yandex OAuth client ID                            |
+| `-s, --client-secret <secret>` | Yandex OAuth client secret                        |
+| `-r, --redirect-uri <uri>`     | Redirect URI for automatic flow                   |
+| `-m, --manual`                 | Skip automatic redirect, prompt for code manually |
+| `-u, --short-url`              | Shorten the auth URL using clck.ru                |
+| `-h, --help`                   | Show help                                         |
 
 Environment variables (`YANDEX_CLIENT_ID`, `YANDEX_CLIENT_SECRET`, `REDIRECT_URI`) are also supported as fallback.
 
